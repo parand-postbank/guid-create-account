@@ -9,33 +9,51 @@ function Create_bank_account_holder() {
 
 
 const handleCopy = async () => {
-  try {
-    if (navigator.clipboard && window.isSecureContext) {
-      // روش جدید (برای HTTPS)
+  if (navigator.clipboard) {
+    try {
       await navigator.clipboard.writeText(authCode);
-    } else {
-      // روش جایگزین برای موبایل و HTTP
-      const textArea = document.createElement("textarea");
-      textArea.value = authCode;
-      textArea.style.position = "fixed";
-      textArea.style.opacity = "0";
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textArea);
+      finalizeCopy();
+      return; 
+    } catch (err) {
+      console.warn("Clipboard API failed, trying fallback...");
     }
-
-    setCopied(true);
-
-    setTimeout(() => {
-      window.scrollBy({ top: 320, behavior: "smooth" });
-    }, 100);
-
-  } catch (err) {
-    console.error("خطا در کپی کردن کد:", err);
-    alert("کپی انجام نشد، لطفاً دستی کپی کنید.");
   }
+
+  
+  try {
+    const textArea = document.createElement("textarea");
+    textArea.value = authCode;
+    
+    
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+    textArea.style.top = "0";
+    
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    const successful = document.execCommand("copy");
+    document.body.removeChild(textArea);
+
+    if (successful) {
+      finalizeCopy();
+    } else {
+      throw new Error("execCommand unsuccessful");
+    }
+  } catch (err) {
+    
+    finalizeCopy();
+    alert("کپی انجام نشد، لطفاً دستی کپی کنید.");
+    console.error("Copy failed completely", err);
+  }
+};
+
+const finalizeCopy = () => {
+  setCopied(true);
+  setTimeout(() => {
+    window.scrollBy({ top: 320, behavior: "smooth" });
+  }, 100);
 };
 
 
